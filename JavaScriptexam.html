@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript E-commerce</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1080px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .nav {
+            display: flex;
+            flex-wrap: wrap; 
+            margin-bottom: 20px;
+        }
+        .nav label {
+            display: inline-block; 
+            margin-right: 5px; 
+            line-height: 32px; 
+        }
+        .nav input {
+            flex: 2; 
+            margin-bottom: 10px;
+            padding: 5px; 
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            height: 32px; 
+        }
+        .nav button {
+            flex: 1; 
+            margin-left: 10px; 
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .nav button:hover {
+            background-color: #218838;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .summary {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .delete {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete:hover {
+            background-color: #c82333;
+        }
+    </style>
+    
+</head>
+<body>
+    
+    <div class = container>
+        <h1 class="header">Shopping Cart</h1>  
+        <h2 class="topic">Add Item for selection</h2>  
+        <div class="nav">
+            <label for="productName">Product Name:</label>
+            <input type="text" id="newproduct" placeholder=" " />
+
+            <label for="Price">Price:</label>
+            <input type="number" id="newprice" placeholder=" " />
+            
+            <label for="Image">Image:</label>
+            <input type="url" id="newpic" placeholder=" " />
+            <button onclick="addProduct()">Create Product</button>
+             
+        </div>
+        <ul id ="productList"></ul>
+
+        <button onclick="addtoCart()">Add to Cart</button>   
+       
+        <ul id ="addFinal-product"></ul>
+
+        <button onclick="calculateFinal()">Calculate Final Price</button> 
+        <p>
+            <span class="summary">You have to pay: </span>
+        </p>
+        
+    </div>
+    <script>
+
+let products = []; 
+let cart = []; 
+
+function addProduct() {
+    let productInput = document.getElementById('newproduct').value.trim(); 
+    let price        = document.getElementById('newprice').value;
+    let image        = document.getElementById('newpic').value.trim();
+
+    let priceValue = parseFloat (price);
+
+    if (productInput && !isNaN(priceValue)&& priceValue > 0 && image) {
+        products.push({productInput,price,image});
+        document.getElementById("newproduct").value = "";
+        document.getElementById("newprice").value = "";     
+        document.getElementById("newpic").value = "";
+        renderproducts();       
+    } else {
+        alert("Please input data");
+    }
+}
+function addtoCart() {
+   
+    
+    products.forEach ((item,index) => {
+        const checkbox = document.getElementById(`product_${index}`);
+        if (checkbox.checked) {
+            cart.push(item);
+            
+        }
+    });
+    renderCart();
+    
+}
+
+
+function renderCart() {
+    let cartList = document.getElementById('addFinal-product');
+    cartList.innerHTML = " ";
+
+    cart.forEach ((item,index) => {
+        let li = document.createElement('li');
+        li.innerHTML = `
+            <img src="${item.image}" alt="${item.productInput}" style="width: 50px; height: auto; margin-right: 10px;" />
+            ${item.productInput} - ${item.price}
+            <button class="delete" onclick="removeFromCart(${index})">Remove</button>
+        `;
+        cartList.appendChild(li);
+    });
+
+}
+function removeFromCart(index) {
+        cart.splice (index, 1);
+        renderCart();
+        
+}
+
+function calculateFinal() {
+    let total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    document.querySelector('.summary').innerText = `You have to pay: ฿${total.toFixed(2)}`;
+}
+
+function deleteproduct(index) { 
+            products.splice(index,1); 
+            renderproducts();
+        }
+
+function editproducts(index) {
+    let newProductName = prompt("Edit your product name", products[index].productInput);
+    let newPrice = prompt("Edit your product price", products[index].price);
+    let newImage = prompt("Edit your product image URL", products[index].image);
+    
+    if (newProductName !== null && newProductName.trim() !== "") {
+        products[index].productInput = newProductName;
+    }
+    if (newPrice !== null && !isNaN(parseFloat(newPrice)) && parseFloat(newPrice) > 0) {
+        products[index].price = parseFloat(newPrice);
+    }
+    if (newImage !== null && newImage.trim() !== "") {
+        products[index].image = newImage;
+    }
+    
+    renderproducts();
+}
+function renderproducts(filteredProduct = products) { 
+            let productList = document.getElementById('productList');
+            productList.innerHTML ='';
+
+            filteredProduct.forEach((item,index) => { 
+                let li =document.createElement('li'); 
+                li.innerHTML = `
+                <img src="${item.image}" alt="${item.productInput}" style="width: 100px; height: auto;" />
+                <span>${item.productInput} - ${item.price}</span>
+
+                <div>
+                    <input type="checkbox" id="product_${index}" /> 
+                    <label for="product_${index}">Add to Cart</label>
+                    <button class="delete" onclick="deleteproduct(${index})">Remove</button>
+                    <button class="edit" onclick="editproducts(${index})">Edit</button> 
+                </div>
+                `; 
+                productList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
